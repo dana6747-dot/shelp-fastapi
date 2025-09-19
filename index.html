@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>문제 분석 앱</title>
+</head>
+<body>
+  <h1>문제 분석 앱</h1>
+
+  <!-- ✅ 체크박스 영역 -->
+  <h3>설정</h3>
+  <label><input type="checkbox" id="fast_mode"> 빠른 모드</label>
+  <label><input type="checkbox" id="use_easyocr"> EasyOCR 사용</label>
+  <button onclick="saveSettings()">저장</button>
+  <hr>
+
+  <!-- ✅ 사진 업로드 + 텍스트 입력 -->
+  <h3>문제 입력</h3>
+  <input type="file" id="file"><br><br>
+  <textarea id="text" placeholder="문제 텍스트를 직접 입력하거나 비워두면 OCR 사용"></textarea><br>
+  <button onclick="analyze()">분석하기</button>
+
+  <h3>결과</h3>
+  <pre id="result"></pre>
+
+  <script>
+    // 👉 서버 주소 (필요시 127.0.0.1 대신 서버 IP로 교체)
+    const API = "http://127.0.0.1:5000";
+
+    // 설정 불러오기
+    async function loadSettings() {
+      const r = await fetch(API + "/settings");
+      const d = await r.json();
+      document.getElementById("fast_mode").checked = d.fast_mode;
+      document.getElementById("use_easyocr").checked = d.use_easyocr;
+    }
+
+    // 설정 저장하기
+    async function saveSettings() {
+      const body = {
+        fast_mode: document.getElementById("fast_mode").checked,
+        use_easyocr: document.getElementById("use_easyocr").checked
+      };
+      await fetch(API + "/settings", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body)
+      });
+      alert("저장됨!");
+    }
+
+    // 분석하기
+    async function analyze() {
+      const fd = new FormData();
+      const f = document.getElementById("file").files[0];
+      if (f) fd.append("file", f);
+      fd.append("text", document.getElementById("text").value);
+
+      const r = await fetch(API + "/upload_analyze", {
+        method: "POST",
+        body: fd
+      });
+      const d = await r.json();
+      document.getElementById("result").textContent = JSON.stringify(d, null, 2);
+    }
+
+    // 페이지 열 때 설정값 불러오기
+    loadSettings();
+  </script>
+</body>
+</html>
