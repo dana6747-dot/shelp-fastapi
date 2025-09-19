@@ -684,9 +684,19 @@ async def search_from_image(
         traceback.print_exc(); return {"ok": False, "error": str(e)}
 
 @app.get("/search_by_text")
-def search_by_text(q: str = Query(..., min_length=1)):
-    videos = youtube_search_multi([q], max_total=12, ocr_text=q)
-    return {"ok": True, "query": q, "results": videos, "videos": videos}
+def search_by_text(q: str = Query(..., min_length=1), extra: Optional[str] = Query(None)):
+    # 텍스트 검색에도 추가검색어 적용
+    q = (q or "").strip()
+    queries = [q]
+    if extra and extra.strip():
+        ex = extra.strip()
+        if ex not in queries:
+            queries = [ex] + queries
+        ocr_hint = f"{q} {ex}"
+    else:
+        ocr_hint = q
+    videos = youtube_search_multi(queries, max_total=12, ocr_text=ocr_hint)
+    return {"ok": True, "query": q, "extra": extra or "", "results": videos, "videos": videos}
 
 @app.get("/search_youtube")
 def search_youtube_endpoint(q: str = Query(..., min_length=1), maxResults: int = 5):
