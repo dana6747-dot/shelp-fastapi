@@ -18,9 +18,10 @@ except Exception:
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 # ─────────────── OCR 기본값(Windows) ───────────────
-os.environ.setdefault("TESSDATA_PREFIX", r"C:\Program Files\Tesseract-OCR\tessdata")
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+if os.name == "nt":
+    os.environ.setdefault("TESSDATA_PREFIX", r"C:\Program Files\Tesseract-OCR\tessdata")
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 import numpy as np
 import cv2
